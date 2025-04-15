@@ -52,7 +52,7 @@ func MustParseIP(s string) IP {
 
 	ip, err := ParseIP(s)
 	if err != nil {
-		log.fatal("invalid IP address: %v", s)
+		panic("invalid IP address")
 	}
 	return ip
 }
