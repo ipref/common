@@ -1,5 +1,9 @@
 package common
 
+import (
+	rff "github.com/ipref/ref"
+)
+
 const ( // v1 constants
 
 	V1_SIG      = 0x11 // v1 signature
@@ -62,22 +66,26 @@ const ( // v1 command mode, top two bits
 )
 
 type IpRef struct {
-	ip  IP
-	ref rff.Ref
+	IP  IP
+	Ref rff.Ref
 }
 
 func (ipref IpRef) String() string {
-	return ipref.ip.String() + " + " + ipref.ref.String()
+	return ipref.IP.String() + " + " + ipref.Ref.String()
 }
 
 type AddrRec struct {
-	ea  IP
-	ip  IP
-	gw  IP
-	ref rff.Ref
+	EA  IP
+	IP  IP
+	GW  IP
+	Ref rff.Ref
 }
 
-func v1_arec_slices(arec []byte) (ea, ip, gw, refh, refl []byte) {
+func AddrRecEncodedLen(ea_iplen, gw_iplen int) int {
+	return ea_iplen * 2 + gw_iplen + 16 // ea + ip + gw + ref.h + ref.l
+}
+
+func AddrRecSlices(ea_iplen, gw_iplen int, arec []byte) (ea, ip, gw, refh, refl []byte) {
 	i := 0
 	ea = arec[i : i + ea_iplen]
 	i += ea_iplen
@@ -91,21 +99,31 @@ func v1_arec_slices(arec []byte) (ea, ip, gw, refh, refl []byte) {
 	return
 }
 
-func v1_arec_encode(arecb []byte, arec AddrRec) {
-	eab, ipb, gwb, refhb, reflb := v1_arec_slices(arecb)
-	copy(eab, is_ea_iplen(arec.ea).AsSlice())
-	copy(ipb, is_ea_iplen(arec.ip).AsSlice())
-	copy(gwb, is_gw_iplen(arec.gw).AsSlice())
-	be.PutUint64(refhb, arec.ref.H)
-	be.PutUint64(reflb, arec.ref.L)
+func (arec AddrRec) Encode(arecb []byte) {
+	if arec.EA.Len() != arec.IP.Len() {
+		panic("unexpected")
+	}
+	eab, ipb, gwb, refhb, reflb := AddrRecSlices(arec.EA.Len(), arec.GW.Len(), arecb)
+	copy(eab, arec.EA.AsSlice())
+	copy(ipb, arec.IP.AsSlice())
+	copy(gwb, arec.GW.AsSlice())
+	be.PutUint64(refhb, arec.Ref.H)
+	be.PutUint64(reflb, arec.Ref.L)
 }
 
-func v1_arec_decode(arecb []byte) (arec AddrRec) {
-	eab, ipb, gwb, refhb, reflb := v1_arec_slices(arecb)
-	arec.ea = IPFromSlice(eab)
-	arec.ip = IPFromSlice(ipb)
-	arec.gw = IPFromSlice(gwb)
-	arec.ref.H = be.Uint64(refhb)
-	arec.ref.L = be.Uint64(reflb)
+func (arec AddrRec) EncodedLen() int {
+	if arec.EA.Len() != arec.IP.Len() {
+		panic("unexpected")
+	}
+	return AddrRecEncodedLen(arec.EA.Len(), arec.GW.Len())
+}
+
+func AddrRecDecode(ea_iplen, gw_iplen int, arecb []byte) (arec AddrRec) {
+	eab, ipb, gwb, refhb, reflb := AddrRecSlices(ea_iplen, gw_iplen, arecb)
+	arec.EA = IPFromSlice(eab)
+	arec.IP = IPFromSlice(ipb)
+	arec.GW = IPFromSlice(gwb)
+	arec.Ref.H = be.Uint64(refhb)
+	arec.Ref.L = be.Uint64(reflb)
 	return
 }
