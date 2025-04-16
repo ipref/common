@@ -6,9 +6,10 @@ import (
 
 const ( // v1 constants
 
-	V1_SIG      = 0x11 // v1 signature
-	V1_HDR_LEN  = 8
-	V1_MARK_LEN = 4 + 4 // oid + mark
+	V1_SIG          = 0x11 // v1 signature
+	V1_HDR_LEN      = 8
+	V1_AREC_MAX_LEN = 16 + 16 + 16 + 16 // ea + ip + gw + ref.h + ref.l
+	V1_MARK_LEN     = 4 + 4 // oid + mark
 	// v1 header offsets
 	V1_VER      = 0 // must be 0x11
 	V1_CMD      = 1
