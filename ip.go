@@ -142,6 +142,30 @@ func (ip IP) Ver() int {
 	}
 }
 
+func IPLenToVer(l int) int {
+
+	switch l {
+	case 4:
+		return 4
+	case 16:
+		return 6
+	default:
+		return 0
+	}
+}
+
+func IPVerToLen(ver int) int {
+
+	switch ver {
+	case 4:
+		return 4
+	case 6:
+		return 16
+	default:
+		return 0
+	}
+}
+
 func (ip IP) ByteFromEnd(i int) byte {
 
 	bs := ip.AsSlice()
@@ -217,6 +241,51 @@ func (a IP) Add(b IP) IP {
 	return IPFromSlice(cs[:len(as)])
 }
 
+func (a IP) Compare(b IP) int {
+
+	switch {
+
+	case a.Is4() && b.Is4():
+
+		ai := a.AsUint32()
+		bi := b.AsUint32()
+		if ai < bi {
+			return -1
+		}
+		if ai > bi {
+			return 1
+		}
+		return 0
+
+	case a.Is6() && b.Is6():
+
+		as := a.AsSlice()
+		bs := b.AsSlice()
+		for i := 0; i < 16; i++ {
+			if as[i] < bs[i] {
+				return -1
+			}
+			if as[i] > bs[i] {
+				return 1
+			}
+		}
+		return 0
+
+	case a.Is4() && b.Is6():
+
+		return -1
+
+	case a.Is6() && b.Is4():
+
+		return 1
+
+	default:
+
+		panic("unexpected")
+	}
+
+}
+
 func IPBits(l, n int) IP {
 
 	if l != 4 && l != 16 {
@@ -241,4 +310,8 @@ func IPNum(l int, n uint32) IP {
 	var bs [16]byte
 	be.PutUint32(bs[12:16], n)
 	return IPFromSlice(bs[16 - l:])
+}
+
+func IPZero(l int) IP {
+	return IPNum(l, 0)
 }
