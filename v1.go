@@ -2,10 +2,6 @@
 
 package common
 
-import (
-	rff "github.com/ipref/ref"
-)
-
 const ( // v1 constants
 
 	V1_SIG          = 0x11 // v1 signature
@@ -70,7 +66,7 @@ const ( // v1 command mode, top two bits
 
 type IpRef struct {
 	IP  IP
-	Ref rff.Ref
+	Ref Ref
 }
 
 func (ipref IpRef) String() string {
@@ -81,7 +77,7 @@ type AddrRec struct {
 	EA  IP
 	IP  IP
 	GW  IP
-	Ref rff.Ref
+	Ref Ref
 }
 
 func AddrRecEncodedLen(ea_iplen, gw_iplen int) int {
