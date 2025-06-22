@@ -4,4 +4,5 @@ package common
 
 import "encoding/binary"
 
+var le = binary.LittleEndian
 var be = binary.BigEndian
