@@ -16,8 +16,16 @@ func (ref Ref) IsZero() bool {
 }
 
 func ParseRef(str string) (Ref, error) {
+	return parse_ref(str, false)
+}
 
-	if !strings.Contains(str, "-") {
+func ParseRefInPrefix(str string) (Ref, error) {
+	return parse_ref(str, true)
+}
+
+func parse_ref(str string, cidr bool) (Ref, error) {
+
+	if !cidr && !strings.Contains(str, "-") {
 		if val, ok := ParseUint128(str, 10); ok {
 			return Ref(val), nil
 		}
@@ -25,6 +33,9 @@ func ParseRef(str string) (Ref, error) {
 	}
 	ss := strings.Split(str, "--")
 	if len(ss) == 1 {
+		if cidr {
+			return Ref{}, errors.New("ref in prefix needs trailing '--'")
+		}
 		val, _, err := parse_ref_comps(ss[0])
 		return Ref(val), err
 	}
@@ -123,6 +134,28 @@ func (ref Ref) String() string {
 	}
 	if bits <= 16 {
 		s = "0-" + s
+	}
+	return s
+}
+
+func (ref Ref) StringInPrefix() string {
+
+	val := Uint128(ref)
+	if val.IsZero() {
+		return "0--"
+	}
+	var s string
+	bits := 0
+	for !val.IsZero() {
+		if bits != 0 {
+			s += "-"
+		}
+		s += val.Rsh(128 - 16).FormatHex()
+		val = val.Lsh(16)
+		bits += 16
+	}
+	if bits != 128 {
+		s += "--"
 	}
 	return s
 }
