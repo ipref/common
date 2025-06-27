@@ -74,6 +74,13 @@ func IPFromUint32(ip uint32) IP {
 	return IP(netip.AddrFrom4(ipb))
 }
 
+func IPFromUint128(ip Uint128) IP {
+
+	var ipb [16]byte
+	ip.PutBytesBE(ipb[:])
+	return IP(netip.AddrFrom16(ipb))
+}
+
 func (ip IP) AsSlice() []byte {
 
 	if ip.IsZero() {
@@ -107,6 +114,29 @@ func (ip IP) AsUint32() uint32 {
 	return uint32(be.Uint32(ipb[:]))
 }
 
+func (ip IP) AsUint128() Uint128 {
+
+	if ip.IsZero() {
+		panic("uninitialized")
+	}
+	ipb := netip.Addr(ip).As16()
+	return Uint128FromBytesBE(ipb[:])
+}
+
+func (ip IP) AsUint128Cast() Uint128 {
+
+	if ip.IsZero() {
+		panic("uninitialized")
+	}
+	if ip.Is4() {
+		ipb := netip.Addr(ip).As4()
+		return Uint128FromUint32(be.Uint32(ipb[:]))
+	} else {
+		ipb := netip.Addr(ip).As16()
+		return Uint128FromBytesBE(ipb[:])
+	}
+}
+
 func (ip IP) Is4() bool {
 
 	if ip.IsZero() {
@@ -122,6 +152,10 @@ func (ip IP) Is6() bool {
 func (ip IP) IsLinkLocal() bool {
 	return netip.Addr(ip).IsLinkLocalUnicast() ||
 		netip.Addr(ip).IsLinkLocalMulticast()
+}
+
+func (ip IP) IsGlobalUnicast() bool {
+	return netip.Addr(ip).IsGlobalUnicast()
 }
 
 func (ip IP) Len() int {
