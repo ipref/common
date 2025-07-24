@@ -4,6 +4,7 @@ package common
 
 import (
 	"errors"
+	"golang.org/x/sys/unix"
 	"net/netip"
 )
 
@@ -134,6 +135,31 @@ func (ip IP) AsUint128Cast() Uint128 {
 	} else {
 		ipb := netip.Addr(ip).As16()
 		return Uint128FromBytesBE(ipb[:])
+	}
+}
+
+func (ip IP) AsUnixSockaddr() unix.Sockaddr {
+
+	if ip.Is4() {
+		var addr unix.SockaddrInet4
+		copy(addr.Addr[:], ip.AsSlice())
+		return &addr
+	} else {
+		var addr unix.SockaddrInet6
+		copy(addr.Addr[:], ip.AsSlice())
+		return &addr
+	}
+}
+
+func IPFromUnixSockaddr(addr unix.Sockaddr) IP {
+
+	switch a := addr.(type) {
+	case *unix.SockaddrInet4:
+		return IPFromSlice(a.Addr[:])
+	case *unix.SockaddrInet6:
+		return IPFromSlice(a.Addr[:])
+	default:
+		return IP{}
 	}
 }
 

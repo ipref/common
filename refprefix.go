@@ -76,3 +76,17 @@ func RefPrefixSingle(ref Ref) RefPrefix {
 func RefPrefixComplete() RefPrefix {
 	return RefPrefix{}
 }
+
+func (p RefPrefix) Contains(ref Ref) bool {
+	return RefPrefixFrom(ref, p.bits).ref == ref
+}
+
+func RefPrefixesContain(prefixes []RefPrefix, ref Ref) bool {
+
+	for _, prefix := range prefixes {
+		if prefix.Contains(ref) {
+			return true
+		}
+	}
+	return false
+}
