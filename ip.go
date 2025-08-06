@@ -180,12 +180,12 @@ func (ip IP) Is4In6() bool {
 }
 
 func (ip IP) IsLinkLocal() bool {
-	return netip.Addr(ip).IsLinkLocalUnicast() ||
-		netip.Addr(ip).IsLinkLocalMulticast()
+	return !ip.Is4In6() && (netip.Addr(ip).IsLinkLocalUnicast() ||
+		netip.Addr(ip).IsLinkLocalMulticast())
 }
 
 func (ip IP) IsGlobalUnicast() bool {
-	return netip.Addr(ip).IsGlobalUnicast()
+	return !ip.Is4In6() && netip.Addr(ip).IsGlobalUnicast()
 }
 
 func (ip IP) As4In6() IP {
