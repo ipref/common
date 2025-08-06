@@ -17,6 +17,10 @@ func (p IPPrefix) Bits() int {
 	return netip.Prefix(p).Bits()
 }
 
+func (p IPPrefix) SizeBits() int {
+	return p.Addr().Len() * 8 - p.Bits()
+}
+
 func IPPrefixFrom(ip IP, bits int) IPPrefix {
 	return IPPrefix(netip.PrefixFrom(netip.Addr(ip), bits).Masked())
 }

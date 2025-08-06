@@ -26,6 +26,10 @@ func (p RefPrefix) Bits() int {
 	return p.bits
 }
 
+func (p RefPrefix) SizeBits() int {
+	return 128 - p.bits
+}
+
 func RefPrefixFrom(ref Ref, bits int) RefPrefix {
 
 	if bits < 0 || bits > 128 {

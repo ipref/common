@@ -175,6 +175,10 @@ func (ip IP) Is6() bool {
 	return !ip.Is4()
 }
 
+func (ip IP) Is4In6() bool {
+	return netip.Addr(ip).Is4In6()
+}
+
 func (ip IP) IsLinkLocal() bool {
 	return netip.Addr(ip).IsLinkLocalUnicast() ||
 		netip.Addr(ip).IsLinkLocalMulticast()
@@ -182,6 +186,26 @@ func (ip IP) IsLinkLocal() bool {
 
 func (ip IP) IsGlobalUnicast() bool {
 	return netip.Addr(ip).IsGlobalUnicast()
+}
+
+func (ip IP) As4In6() IP {
+
+	if ip.IsZero() || ip.Ver() == 6 {
+		return ip
+	}
+	var bs [16]byte
+	bs[10] = 0xff
+	bs[11] = 0xff
+	copy(bs[12:], ip.AsSlice())
+	return IPFromSlice(bs[:])
+}
+
+func (ip IP) Un4In6() IP {
+
+	if ip.IsZero() {
+		return ip
+	}
+	return IP(netip.Addr(ip).Unmap())
 }
 
 func (ip IP) Len() int {
