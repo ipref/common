@@ -119,8 +119,8 @@ func MustParseIpRef(str string) IpRef {
 func (ref Ref) String() string {
 
 	val := Uint128(ref)
-	if val.IsZero() {
-		return "0"
+	if val.Cmp(Uint128FromUint64(1 << 16)) < 0 {
+		return val.String()
 	}
 	var s string
 	bits := 0

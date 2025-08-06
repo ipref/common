@@ -13,9 +13,9 @@ func TestRefParsing(t *testing.T) {
 		ref       Ref
 	}{
 		{"0-0", "0", true, Ref{}},
-		{"1", "0-1", true, Ref(UINT128_1)},
-		{"12", "0-c", true, Ref(Uint128FromUint64(12))},
-		{"0-12", "0-12", true, Ref(Uint128FromUint64(0x12))},
+		{"1", "1", true, Ref(UINT128_1)},
+		{"12", "12", true, Ref(Uint128FromUint64(12))},
+		{"0-12", "18", true, Ref(Uint128FromUint64(0x12))},
 		{"12-0", "12-0", true, Ref(Uint128FromUint64(0x12 << 16))},
 		{"a0--12", "a0-0-0-0-0-0-0-12", true,
 			Ref(Uint128FromUint64(0xa0).Lsh(112).Or(Uint128FromUint64(0x12)))},
