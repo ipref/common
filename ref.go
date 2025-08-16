@@ -33,10 +33,10 @@ func parse_ref(str string, cidr bool) (Ref, error) {
 	}
 	ss := strings.Split(str, "--")
 	if len(ss) == 1 {
-		if cidr {
-			return Ref{}, errors.New("ref in prefix needs trailing '--'")
+		val, bits, err := parse_ref_comps(ss[0])
+		if cidr && bits != 128 {
+			return Ref{}, errors.New("ref in prefix needs '--' unless it is full-length")
 		}
-		val, _, err := parse_ref_comps(ss[0])
 		return Ref(val), err
 	}
 	if len(ss) == 2 {
