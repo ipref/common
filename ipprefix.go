@@ -25,6 +25,10 @@ func IPPrefixFrom(ip IP, bits int) IPPrefix {
 	return IPPrefix(netip.PrefixFrom(netip.Addr(ip), bits).Masked())
 }
 
+func IPPrefixAllVer(ipver int) IPPrefix {
+	return IPPrefixFrom(IPZero(IPVerToLen(ipver)), 0)
+}
+
 func (p IPPrefix) String() string {
 	return netip.Prefix(p).String()
 }
