@@ -2,18 +2,24 @@
 
 package common
 
+/*
+ * The "V1" protocol is used by gw to communicate with dns-agent and the special
+ * resolver. It's also used internally within gw. For historical reasons, there
+ * are two versions of the "V1" protocol - "oldv1" and "newv1", which differ
+ * only in the addrrec format and the presence of an extra field in the header.
+ * The common parts of the two versions are defined here - the specific parts
+ * are in the packages oldv1 and newv1.
+ */
+
 const ( // v1 constants
 
 	V1_SIG          = 0x11 // v1 signature
 	V1_HDR_LEN      = 8
-	V1_AREC_MAX_LEN = 16 + 16 + 16 + 16 // ea + ip + gw + ref.h + ref.l
 	V1_MARK_LEN     = 4 + 4 // oid + mark
 	// v1 header offsets
 	V1_VER      = 0 // must be 0x11
 	V1_CMD      = 1
 	V1_PKTID    = 2
-	V1_IPVER    = 4 // high nibble is the ea IP ver, low nibble is gw IP ver
-	V1_RESERVED = 5
 	V1_PKTLEN   = 6
 	// v1 mark offsets
 	V1_OID  = 0
@@ -78,51 +84,4 @@ type AddrRec struct {
 	IP  IP
 	GW  IP
 	Ref Ref
-}
-
-func AddrRecEncodedLen(ea_iplen, gw_iplen int) int {
-	return ea_iplen * 2 + gw_iplen + 16 // ea + ip + gw + ref.h + ref.l
-}
-
-func AddrRecSlices(ea_iplen, gw_iplen int, arec []byte) (ea, ip, gw, refh, refl []byte) {
-	i := 0
-	ea = arec[i : i + ea_iplen]
-	i += ea_iplen
-	ip = arec[i : i + ea_iplen]
-	i += ea_iplen
-	gw = arec[i : i + gw_iplen]
-	i += gw_iplen
-	refh = arec[i : i + 8]
-	i += 8
-	refl = arec[i : i + 8]
-	return
-}
-
-func (arec AddrRec) Encode(arecb []byte) {
-	if arec.EA.Len() != arec.IP.Len() {
-		panic("unexpected")
-	}
-	eab, ipb, gwb, refhb, reflb := AddrRecSlices(arec.EA.Len(), arec.GW.Len(), arecb)
-	copy(eab, arec.EA.AsSlice())
-	copy(ipb, arec.IP.AsSlice())
-	copy(gwb, arec.GW.AsSlice())
-	be.PutUint64(refhb, arec.Ref.H)
-	be.PutUint64(reflb, arec.Ref.L)
-}
-
-func (arec AddrRec) EncodedLen() int {
-	if arec.EA.Len() != arec.IP.Len() {
-		panic("unexpected")
-	}
-	return AddrRecEncodedLen(arec.EA.Len(), arec.GW.Len())
-}
-
-func AddrRecDecode(ea_iplen, gw_iplen int, arecb []byte) (arec AddrRec) {
-	eab, ipb, gwb, refhb, reflb := AddrRecSlices(ea_iplen, gw_iplen, arecb)
-	arec.EA = IPFromSlice(eab)
-	arec.IP = IPFromSlice(ipb)
-	arec.GW = IPFromSlice(gwb)
-	arec.Ref.H = be.Uint64(refhb)
-	arec.Ref.L = be.Uint64(reflb)
-	return
 }
